@@ -1,0 +1,21 @@
+# Исключение виртуального окружения
+venv/
+.venv/
+# Кэш-файлы Python
+*.pyc
+__pycache__/
+
+instance/
+# Кэш pytest и отчеты покрытия
+.pytest_cache/
+.coverage
+htmlcov/
+# Файлы сборки и дистрибуции
+dist/
+build/
+*.egg-info/
+# Логи
+*.log
+# Конфиденциальные файлы (например, переменные окружения)
+.env
+.vscode/
