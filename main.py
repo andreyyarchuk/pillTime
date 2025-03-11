@@ -24,7 +24,14 @@ with app.app_context():
 
 @app.route("/schedules", methods=["GET"])
 def getData():
-    schedules = Schedule.query.all()
+    user_id = request.args.get("user_id") # Получаем значение из query-параметра
+
+    if user_id: # Если в запросе переданы user_id, то тогда фильтруем данные
+        schedules = Schedule.query.filter_by(user_id = user_id).all()
+    else: # Если user_id не передан, то возвращаем все данные
+        schedules = Schedule.query.all()
+
+
     result = [
         {
             "id": schedule.id,
