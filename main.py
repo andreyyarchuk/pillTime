@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
+debug = []
 # Настройки базы данных
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///schedules.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -46,6 +47,34 @@ def getData():
         currentFrequency = schedule.frequency # Переодичности frequency в часах # 2
         dateReference = roundDate(schedule.created_at) # Присвоение времени создания записи (стартовое время приема)
         # Округление нужного времени "14:59" -> "15:00"
+        # 2. Нужно создать промежуток приёмов: начальное время + промежуток + условие "2)"
+            # Определям границы приема лекарств
+        startTime = "08:00"
+        endTime = "22:00"
+            # Преобразование времени в формат datetime
+        startTimeDateTime = datetime.strptime(startTime, "%H:%M")
+        endTimeDateTime = datetime.strptime(endTime, "%H:%M")
+        dateReferenceDateTime = datetime.strptime(dateReference, "%H:%M")
+        # Проверка, будет ли прием в 8:00 # Заполняем какое время будет первое
+        if (dateReference and (dateReferenceDateTime <=  startTimeDateTime)):
+            intake_times.append(startTimeDateTime.strftime("%H:%M"))
+        else:
+            intake_times.append(dateReferenceDateTime.strftime("%H:%M"))
+        # Прописать логику заполнения массива. Пропишем это алгоритмом
+    # 1. Вычисляем следующее время приема как стартовое время + frequency
+        while datetime.strptime(intake_times[-1], "%H:%M") < endTimeDateTime:
+            last_time = datetime.strptime(intake_times[-1], "%H:%M")
+            next_time = last_time + timedelta(hours=int(schedule.frequency))
+            
+            if next_time >= endTimeDateTime:  # Проверка, чтобы не выйти за границы
+                break
+
+            intake_times.append(next_time.strftime("%H:%M"))
+
+            
+        # debug.append(f"startTimeDateTime - {startTimeDateTime} (тип: {type(startTimeDateTime)})")
+        # debug.append(f"dateReferenceDateTime - {dateReferenceDateTime} (тип: {type(dateReferenceDateTime)})")
+        # debug.append(f"(dateReferenceDateTime <=  startTimeDateTime) - {(dateReference and (dateReferenceDateTime <=  startTimeDateTime))}")
         
         return jsonify({
             "scheduleID": schedule.schedule_id, # id текущего расписания
@@ -54,8 +83,9 @@ def getData():
             "frequency": schedule.frequency, # Периодичность приема
             "createdAt":schedule.created_at, # Дата назначения
             "intakeTimes": intake_times,
-            "testTime": dateReference
-            # "therapyDuration": schedule.therapy_duration,
+            "testTime": dateReference,
+            "debug": debug,
+            "therapyDuration": schedule.therapy_duration,
         })
 
     elif user_id: # Если переданы только user_id - вернем все расписания по данному пользователю
